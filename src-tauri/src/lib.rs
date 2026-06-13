@@ -2,6 +2,13 @@ mod crypto;
 mod vault;
 
 use vault::Credential;
+use serde::Serialize;
+
+#[derive(Serialize)]
+struct ImportResult {
+    imported: usize,
+    skipped: usize,
+}
 
 #[tauri::command]
 fn vault_exists() -> bool {
@@ -43,10 +50,33 @@ fn update_last_copied(
     vault::update_last_copied(password, credential_id, timestamp)
 }
 
+#[tauri::command]
+fn export_vault(
+    master_password: &str,
+    export_password: &str,
+    export_path: &str,
+) -> Result<(), String> {
+    vault::export_vault(master_password, export_password, export_path)
+}
+
+#[tauri::command]
+fn import_vault(
+    master_password: &str,
+    export_password: &str,
+    import_path: &str,
+) -> Result<ImportResult, String> {
+    let result = vault::import_vault(master_password, export_password, import_path)?;
+    Ok(ImportResult {
+        imported: result.imported,
+        skipped: result.skipped,
+    })
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             vault_exists,
             init_vault,
@@ -55,7 +85,9 @@ pub fn run() {
             update_credential,
             delete_credential,
             update_last_copied,
+            export_vault,
+            import_vault,
         ])
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("error while running tauri application")
 }

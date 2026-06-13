@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Credential } from "./types";
 import AddCredential from "./AddCredential";
+import Settings from "./Settings";
 
 interface Props {
   password: string;
@@ -13,6 +14,7 @@ interface Props {
 export default function Dashboard({ password, credentials, onLock, onCredsChange }: Props) {
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [editCred, setEditCred] = useState<Credential | null>(null);
   const [toast, setToast] = useState("");
   const [revealId, setRevealId] = useState<string | null>(null);
@@ -68,7 +70,12 @@ export default function Dashboard({ password, credentials, onLock, onCredsChange
   }
 
   async function handleAdd(data: Omit<Credential, "id" | "created_at" | "last_copied">) {
-    const newCred: Credential = { ...data, id: crypto.randomUUID(), created_at: new Date().toISOString(), last_copied: null };
+    const newCred: Credential = {
+      ...data,
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      last_copied: null,
+    };
     try {
       await invoke("add_credential", { password, credential: newCred });
       onCredsChange([...credentials, newCred]);
@@ -136,14 +143,18 @@ export default function Dashboard({ password, credentials, onLock, onCredsChange
 
   return (
     <div className="dashboard">
+
       {/* Header */}
       <div className="dash-header">
         <div style={{ display: "flex", alignItems: "center" }}>
           <span className="dash-logo">TOK<span>●</span>NLY</span>
-          <span className="cred-count">{credentials.length} credential{credentials.length !== 1 ? "s" : ""}</span>
+          <span className="cred-count">
+            {credentials.length} credential{credentials.length !== 1 ? "s" : ""}
+          </span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="dash-btn-primary" onClick={() => setShowAdd(true)}>+ Add</button>
+          <button className="dash-btn-ghost" onClick={() => setShowSettings(true)}>⚙ Settings</button>
           <button className="dash-btn-ghost" onClick={onLock}>🔒 Lock</button>
         </div>
       </div>
@@ -179,24 +190,41 @@ export default function Dashboard({ password, credentials, onLock, onCredsChange
               {filtered.map((cred) => {
                 const expiry = expiryStatus(cred.expiry_date);
                 return (
-                  <tr key={cred.id} className={expiry === "expired" ? "row-exp" : expiry === "warning" ? "row-warn" : ""}>
+                  <tr
+                    key={cred.id}
+                    className={
+                      expiry === "expired" ? "row-exp" :
+                      expiry === "warning" ? "row-warn" : ""
+                    }
+                  >
+                    {/* Name */}
                     <td>
                       <div className="cred-name">{cred.name}</div>
                       {cred.notes && <div className="cred-note">{cred.notes}</div>}
                     </td>
+
+                    {/* Category */}
                     <td>
-                      <span className={`cat ${getCatClass(cred.category)}`}>{cred.category}</span>
+                      <span className={`cat ${getCatClass(cred.category)}`}>
+                        {cred.category}
+                      </span>
                     </td>
+
+                    {/* Username */}
                     <td>
                       {cred.username ? (
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <span className="username-text">{cred.username}</span>
-                          <button className="act-btn" onClick={() => handleCopyUsername(cred)}>Copy</button>
+                          <button className="act-btn" onClick={() => handleCopyUsername(cred)}>
+                            Copy
+                          </button>
                         </div>
                       ) : (
                         <span style={{ color: "var(--text-muted)", fontSize: 11 }}>—</span>
                       )}
                     </td>
+
+                    {/* Secret */}
                     <td>
                       {revealId === cred.id ? (
                         <span className="revealed">{cred.value}</span>
@@ -204,9 +232,14 @@ export default function Dashboard({ password, credentials, onLock, onCredsChange
                         <span className="masked">••••••••••••</span>
                       )}
                     </td>
+
+                    {/* Expiry */}
                     <td>
                       {cred.expiry_date ? (
-                        <span className={expiry === "expired" ? "expiry-exp" : expiry === "warning" ? "expiry-warn" : "expiry-ok"}>
+                        <span className={
+                          expiry === "expired" ? "expiry-exp" :
+                          expiry === "warning" ? "expiry-warn" : "expiry-ok"
+                        }>
                           {cred.expiry_date}
                           {expiry === "expired" && " ⚠ Expired"}
                           {expiry === "warning" && ` ⚠ ${expiryDaysLeft(cred.expiry_date)}d left`}
@@ -215,14 +248,20 @@ export default function Dashboard({ password, credentials, onLock, onCredsChange
                         <span style={{ color: "var(--text-muted)", fontSize: 11 }}>—</span>
                       )}
                     </td>
+
+                    {/* Last Copied */}
                     <td>
                       <span style={{ color: "var(--text-muted)", fontSize: 11 }}>
                         {formatLastCopied(cred.last_copied)}
                       </span>
                     </td>
+
+                    {/* Actions */}
                     <td>
                       <div style={{ display: "flex", gap: 4 }}>
-                        <button className="act-btn" onClick={() => handleCopyValue(cred)}>Copy</button>
+                        <button className="act-btn" onClick={() => handleCopyValue(cred)}>
+                          Copy
+                        </button>
                         <button
                           className="act-btn"
                           onMouseDown={() => setRevealId(cred.id)}
@@ -231,8 +270,15 @@ export default function Dashboard({ password, credentials, onLock, onCredsChange
                         >
                           👁 Hold
                         </button>
-                        <button className="act-btn" onClick={() => setEditCred(cred)}>✏</button>
-                        <button className="act-btn act-btn-del" onClick={() => handleDelete(cred)}>🗑</button>
+                        <button className="act-btn" onClick={() => setEditCred(cred)}>
+                          ✏
+                        </button>
+                        <button
+                          className="act-btn act-btn-del"
+                          onClick={() => handleDelete(cred)}
+                        >
+                          🗑
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -243,13 +289,39 @@ export default function Dashboard({ password, credentials, onLock, onCredsChange
         )}
       </div>
 
+      {/* Toast */}
       {toast && <div className="toast">✓ {toast}</div>}
 
+      {/* Add Modal */}
       {showAdd && (
-        <AddCredential password={password} onSave={handleAdd} onCancel={() => setShowAdd(false)} />
+        <AddCredential
+          password={password}
+          onSave={handleAdd}
+          onCancel={() => setShowAdd(false)}
+        />
       )}
+
+      {/* Edit Modal */}
       {editCred && (
-        <AddCredential password={password} onSave={handleEdit} onCancel={() => setEditCred(null)} existing={editCred} />
+        <AddCredential
+          password={password}
+          onSave={handleEdit}
+          onCancel={() => setEditCred(null)}
+          existing={editCred}
+        />
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <Settings
+          password={password}
+          onClose={() => setShowSettings(false)}
+          onImportComplete={async () => {
+            const creds = await invoke<Credential[]>("unlock_vault", { password });
+            onCredsChange(creds);
+            setShowSettings(false);
+          }}
+        />
       )}
     </div>
   );

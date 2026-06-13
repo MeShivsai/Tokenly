@@ -137,3 +137,67 @@ pub fn update_last_copied(
     }
     write_vault(&vault, password)
 }
+
+// ── Export Vault ───────────────────────────────────────────
+
+pub fn export_vault(
+    master_password: &str,
+    export_password: &str,
+    export_path: &str,
+) -> Result<(), String> {
+    let vault = read_vault(master_password)?;
+
+    let json = serde_json::to_string(&vault)
+        .map_err(|e| format!("Failed to serialize vault: {}", e))?;
+
+    let encrypted = crypto::encrypt(&json, export_password)?;
+
+    std::fs::write(export_path, encrypted)
+        .map_err(|e| format!("Failed to write export file: {}", e))?;
+
+    Ok(())
+}
+
+// ── Import Vault ───────────────────────────────────────────
+
+pub struct ImportResult {
+    pub imported: usize,
+    pub skipped: usize,
+}
+
+pub fn import_vault(
+    master_password: &str,
+    export_password: &str,
+    import_path: &str,
+) -> Result<ImportResult, String> {
+    let encrypted = std::fs::read_to_string(import_path)
+        .map_err(|e| format!("Failed to read import file: {}", e))?;
+
+    let decrypted = crypto::decrypt(&encrypted, export_password)
+        .map_err(|_| "Wrong export password or invalid file.".to_string())?;
+
+    let imported_vault: Vault = serde_json::from_str(&decrypted)
+        .map_err(|_| "Invalid export file format.".to_string())?;
+
+    let mut current_vault = read_vault(master_password)?;
+
+    let mut imported = 0;
+    let mut skipped = 0;
+
+    for cred in imported_vault.credentials {
+        let exists = current_vault.credentials
+            .iter()
+            .any(|c| c.name.to_lowercase() == cred.name.to_lowercase());
+
+        if exists {
+            skipped += 1;
+        } else {
+            current_vault.credentials.push(cred);
+            imported += 1;
+        }
+    }
+
+    write_vault(&current_vault, master_password)?;
+
+    Ok(ImportResult { imported, skipped })
+}
