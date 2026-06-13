@@ -47,6 +47,9 @@ function App() {
       credentials={credentials}
       onLock={handleLock}
       onCredsChange={setCredentials}
+      onPasswordChange={(newPwd) => {
+        setPassword(newPwd);
+      }}
     />
   );
 
@@ -145,8 +148,14 @@ function LockScreen({ onUnlock }: { onUnlock: (pwd: string) => void }) {
     if (!lockedUntil) return;
     const interval = setInterval(() => {
       const remaining = Math.ceil((lockedUntil - Date.now()) / 1000);
-      if (remaining <= 0) { setLockedUntil(null); setAttempts(0); setCountdown(0); setError(""); }
-      else setCountdown(remaining);
+      if (remaining <= 0) {
+        setLockedUntil(null);
+        setAttempts(0);
+        setCountdown(0);
+        setError("");
+      } else {
+        setCountdown(remaining);
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, [lockedUntil]);
@@ -185,7 +194,9 @@ function LockScreen({ onUnlock }: { onUnlock: (pwd: string) => void }) {
             <div className="lockout-timer">
               {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, "0")}
             </div>
-            <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>until vault unlocks</p>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>
+              until vault unlocks
+            </p>
           </div>
         ) : (
           <>
@@ -200,7 +211,11 @@ function LockScreen({ onUnlock }: { onUnlock: (pwd: string) => void }) {
               autoFocus
             />
             {error && <div className="error-box">{error}</div>}
-            <button className="btn-primary" onClick={handleUnlock} disabled={loading || !password}>
+            <button
+              className="btn-primary"
+              onClick={handleUnlock}
+              disabled={loading || !password}
+            >
               {loading ? "Unlocking..." : "Unlock vault"}
             </button>
             {attempts > 0 && (

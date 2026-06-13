@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tokenly",
-  "version": "0.1.0",
+  "productName": "Tokenly",
+  "version": "1.0.0",
   "identifier": "com.tokenly.app",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -12,9 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "tokenly",
-        "width": 800,
-        "height": 600
+        "title": "Tokenly",
+        "width": 1100,
+        "height": 680,
+        "minWidth": 900,
+        "minHeight": 560,
+        "resizable": true,
+        "center": true
       }
     ],
     "security": {
@@ -22,14 +26,22 @@
     }
   },
   "bundle": {
+    "publisher": "Shivsai Anantwar",
     "active": true,
-    "targets": "all",
+    "targets": ["msi", "nsis"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    },
+    "shortDescription": "Secure local credential vault for SDLC teams",
+    "longDescription": "Tokenly is a local-only encrypted credential vault for developers, QA engineers, and DevOps teams. Store PATs, API keys, and passwords securely. Values are never shown on screen — copy to clipboard with auto-clear. AES-256-GCM encryption, zero cloud dependency."
   }
 }

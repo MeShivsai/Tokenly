@@ -89,7 +89,6 @@ function MainSection({
 
   return (
     <div>
-      {/* Auto-lock */}
       <div style={{
         background: "var(--bg-secondary)",
         border: "1px solid var(--border)",
@@ -129,7 +128,6 @@ function MainSection({
         </div>
       </div>
 
-      {/* Other settings */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 }}>
         <SettingsRow icon="🔑" title="Change master password" description="Update the password that unlocks your vault" onClick={onPassword} />
         <SettingsRow icon="📤" title="Export vault" description="Save an encrypted backup of all credentials" onClick={onExport} />
@@ -137,7 +135,6 @@ function MainSection({
         <SettingsRow icon="ℹ️" title="About Tokenly" description="Version info and vault location" onClick={onAbout} />
       </div>
 
-      {/* Vault path */}
       <div style={{
         padding: "10px 14px",
         background: "var(--bg-secondary)",
@@ -209,26 +206,13 @@ function ChangePasswordSection({
     setError("");
     setSuccess(false);
 
-    if (current !== password) {
-      setError("Current password is wrong.");
-      return;
-    }
-    if (newPass.length < 8) {
-      setError("New password must be at least 8 characters.");
-      return;
-    }
-    if (newPass !== confirm) {
-      setError("New passwords do not match.");
-      return;
-    }
-    if (newPass === password) {
-      setError("New password must be different from current password.");
-      return;
-    }
+    if (current !== password) { setError("Current password is wrong."); return; }
+    if (newPass.length < 8) { setError("New password must be at least 8 characters."); return; }
+    if (newPass !== confirm) { setError("New passwords do not match."); return; }
+    if (newPass === password) { setError("New password must be different from current password."); return; }
 
     setLoading(true);
     try {
-      // Read vault with old password, re-encrypt with new password
       const creds = await invoke<any[]>("unlock_vault", { password: current });
       await invoke("init_vault", { password: newPass });
       for (const cred of creds) {
@@ -256,31 +240,13 @@ function ChangePasswordSection({
       </p>
 
       <label className="field-label">Current password</label>
-      <input
-        type="password"
-        className="field-input"
-        value={current}
-        onChange={(e) => setCurrent(e.target.value)}
-        placeholder="Enter current master password"
-      />
+      <input type="password" className="field-input" value={current} onChange={(e) => setCurrent(e.target.value)} placeholder="Enter current master password" />
 
       <label className="field-label">New password</label>
-      <input
-        type="password"
-        className="field-input"
-        value={newPass}
-        onChange={(e) => setNewPass(e.target.value)}
-        placeholder="Min. 8 characters"
-      />
+      <input type="password" className="field-input" value={newPass} onChange={(e) => setNewPass(e.target.value)} placeholder="Min. 8 characters" />
 
       <label className="field-label">Confirm new password</label>
-      <input
-        type="password"
-        className="field-input"
-        value={confirm}
-        onChange={(e) => setConfirm(e.target.value)}
-        placeholder="Re-enter new password"
-      />
+      <input type="password" className="field-input" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Re-enter new password" />
 
       {error && <div className="error-box">{error}</div>}
 
@@ -299,11 +265,7 @@ function ChangePasswordSection({
         </div>
       )}
 
-      <button
-        className="btn-primary"
-        onClick={handleChange}
-        disabled={loading || !current || !newPass || !confirm}
-      >
+      <button className="btn-primary" onClick={handleChange} disabled={loading || !current || !newPass || !confirm}>
         {loading ? "Changing password..." : "Change password"}
       </button>
     </div>
@@ -443,8 +405,10 @@ function AboutSection({ onBack }: { onBack: () => void }) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {[
+          ["Developer", "Shivsai Anantwar"],
+          ["Website", "bitsandbooks.in"],
           ["Version", "1.0.0"],
-          ["Build", "Phase 9 — MVP"],
+          ["Build", "Phase 10 — MVP"],
           ["Encryption", "AES-256-GCM"],
           ["Key derivation", "Argon2id"],
           ["Vault location", "~/.tokenly/vault.enc"],
@@ -461,7 +425,11 @@ function AboutSection({ onBack }: { onBack: () => void }) {
             borderRadius: 7,
           }}>
             <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{label}</span>
-            <span style={{ fontSize: 12, color: "var(--text-primary)", fontFamily: label === "Vault location" || label === "Encryption" || label === "Key derivation" ? "monospace" : "inherit" }}>
+            <span style={{
+              fontSize: 12,
+              color: "var(--text-primary)",
+              fontFamily: label === "Vault location" || label === "Encryption" || label === "Key derivation" ? "monospace" : "inherit"
+            }}>
               {value}
             </span>
           </div>
@@ -479,7 +447,7 @@ function AboutSection({ onBack }: { onBack: () => void }) {
         color: "var(--text-muted)",
         lineHeight: 1.6,
       }}>
-        Your tokens. Masked. Local. Always.
+        © 2026 Shivsai Anantwar — bitsandbooks.in — Your tokens. Masked. Local. Always.
       </div>
     </div>
   );
