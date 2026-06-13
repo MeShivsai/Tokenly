@@ -9,6 +9,7 @@ use crate::crypto;
 pub struct Credential {
     pub id: String,
     pub name: String,
+    pub username: Option<String>,
     pub value: String,
     pub category: String,
     pub notes: String,
@@ -39,7 +40,6 @@ pub fn vault_path() -> Result<PathBuf, String> {
         .ok_or("Cannot locate home directory".to_string())?;
     let tokenly_dir = home.join(".tokenly");
 
-    // Create ~/.tokenly/ if it doesn't exist
     if !tokenly_dir.exists() {
         fs::create_dir_all(&tokenly_dir)
             .map_err(|e| format!("Failed to create .tokenly directory: {}", e))?;

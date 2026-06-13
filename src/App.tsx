@@ -1,70 +1,78 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { Credential } from "./types";
+import Dashboard from "./Dashboard";
 import "./App.css";
 
-// ── Types ──────────────────────────────────────────────────
 type Screen = "loading" | "setup" | "locked" | "dashboard";
 
-// ── Main App ───────────────────────────────────────────────
 function App() {
   const [screen, setScreen] = useState<Screen>("loading");
+  const [password, setPassword] = useState("");
+  const [credentials, setCredentials] = useState<Credential[]>([]);
 
-  useEffect(() => {
-    checkVault();
-  }, []);
+  useEffect(() => { checkVault(); }, []);
 
   async function checkVault() {
     const exists = await invoke<boolean>("vault_exists");
     setScreen(exists ? "locked" : "setup");
   }
 
-  return (
-    <div className="min-h-screen bg-[#0F1117] text-white flex items-center justify-center">
-      {screen === "loading" && <LoadingScreen />}
-      {screen === "setup" && <SetupScreen onComplete={() => setScreen("locked")} />}
-      {screen === "locked" && <LockScreen onUnlock={() => setScreen("dashboard")} />}
-      {screen === "dashboard" && <DashboardPlaceholder onLock={() => setScreen("locked")} />}
+  async function handleUnlock(pwd: string) {
+    const creds = await invoke<Credential[]>("unlock_vault", { password: pwd });
+    setPassword(pwd);
+    setCredentials(creds);
+    setScreen("dashboard");
+  }
+
+  function handleLock() {
+    setPassword("");
+    setCredentials([]);
+    setScreen("locked");
+  }
+
+  if (screen === "loading") return (
+    <div className="auth-wrap">
+      <div style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: 13 }}>
+        Starting Tokenly...
+      </div>
     </div>
   );
-}
 
-// ── Loading Screen ─────────────────────────────────────────
-function LoadingScreen() {
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-8 h-8 border-2 border-[#6C63FF] border-t-transparent rounded-full animate-spin" />
-      <p className="text-gray-400 text-sm">Starting Tokenly...</p>
-    </div>
+  if (screen === "setup") return <SetupScreen onComplete={() => setScreen("locked")} />;
+  if (screen === "locked") return <LockScreen onUnlock={handleUnlock} />;
+  if (screen === "dashboard") return (
+    <Dashboard
+      password={password}
+      credentials={credentials}
+      onLock={handleLock}
+      onCredsChange={setCredentials}
+    />
   );
+
+  return null;
 }
 
-// ── Setup Screen ───────────────────────────────────────────
 function SetupScreen({ onComplete }: { onComplete: () => void }) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function getStrength(p: string): { label: string; color: string; width: string } {
-    if (p.length === 0) return { label: "", color: "", width: "w-0" };
-    if (p.length < 8) return { label: "Too short", color: "bg-red-500", width: "w-1/4" };
-    if (p.length < 12) return { label: "Weak", color: "bg-orange-500", width: "w-2/4" };
-    if (p.length < 16) return { label: "Good", color: "bg-yellow-500", width: "w-3/4" };
-    return { label: "Strong", color: "bg-[#00D4AA]", width: "w-full" };
+  function strengthInfo(p: string): { width: string; color: string; label: string } {
+    if (p.length === 0) return { width: "0%", color: "transparent", label: "" };
+    if (p.length < 8) return { width: "20%", color: "var(--danger)", label: "Too short" };
+    if (p.length < 12) return { width: "45%", color: "#E3B341", label: "Weak" };
+    if (p.length < 16) return { width: "70%", color: "#2EA043", label: "Good" };
+    return { width: "100%", color: "var(--accent)", label: "Strong" };
   }
 
-  const strength = getStrength(password);
+  const str = strengthInfo(password);
 
   async function handleSetup() {
     setError("");
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-    if (password !== confirm) {
-      setError("Passwords do not match.");
-      return;
-    }
+    if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
+    if (password !== confirm) { setError("Passwords do not match."); return; }
     setLoading(true);
     try {
       await invoke("init_vault", { password });
@@ -77,74 +85,55 @@ function SetupScreen({ onComplete }: { onComplete: () => void }) {
   }
 
   return (
-    <div className="w-full max-w-md px-6">
-      <div className="text-center mb-10">
-        <h1 className="text-5xl font-bold text-[#6C63FF] tracking-tight">Tokenly</h1>
-        <p className="text-gray-400 mt-2 text-sm">Your tokens. Masked. Local. Always.</p>
-      </div>
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <div className="auth-logo">TOK<span>●</span>NLY</div>
+        <div className="auth-tagline">Your tokens. Masked. Local. Always.</div>
 
-      <div className="bg-[#1A1B26] rounded-2xl p-8 border border-[#2D2B55]">
-        <h2 className="text-lg font-semibold text-white mb-1">Create Master Password</h2>
-        <p className="text-gray-400 text-sm mb-6">
-          This password encrypts your vault. It is never stored. If you lose it, your vault cannot be recovered.
+        <p style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500, marginBottom: 4 }}>
+          Create master password
+        </p>
+        <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 20 }}>
+          This password encrypts your vault. It is never stored anywhere. Losing it means losing access permanently.
         </p>
 
-        <div className="mb-4">
-          <label className="text-xs text-gray-400 uppercase tracking-widest mb-2 block">
-            Master Password
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Min. 8 characters"
-            className="w-full bg-[#0F1117] border border-[#2D2B55] rounded-lg px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-[#6C63FF] transition-colors"
-          />
-          {password.length > 0 && (
-            <div className="mt-2">
-              <div className="h-1 bg-[#2D2B55] rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-all duration-300 ${strength.color} ${strength.width}`} />
-              </div>
-              <p className={`text-xs mt-1 ${strength.color.replace("bg-", "text-")}`}>
-                {strength.label}
-              </p>
+        <label className="field-label">Master password</label>
+        <input
+          type="password"
+          className="field-input"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Min. 8 characters"
+        />
+        {password.length > 0 && (
+          <div style={{ marginTop: -10, marginBottom: 14 }}>
+            <div className="strength-bar-wrap">
+              <div className="strength-bar" style={{ width: str.width, background: str.color }} />
             </div>
-          )}
-        </div>
-
-        <div className="mb-6">
-          <label className="text-xs text-gray-400 uppercase tracking-widest mb-2 block">
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            placeholder="Re-enter password"
-            className="w-full bg-[#0F1117] border border-[#2D2B55] rounded-lg px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-[#6C63FF] transition-colors"
-          />
-        </div>
-
-        {error && (
-          <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <p className="text-red-400 text-sm">{error}</p>
+            <span style={{ fontSize: 11, color: str.color }}>{str.label}</span>
           </div>
         )}
 
-        <button
-          onClick={handleSetup}
-          disabled={loading}
-          className="w-full bg-[#6C63FF] hover:bg-[#5A52E0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors text-sm"
-        >
-          {loading ? "Creating vault..." : "Create Vault"}
+        <label className="field-label">Confirm password</label>
+        <input
+          type="password"
+          className="field-input"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          placeholder="Re-enter password"
+        />
+
+        {error && <div className="error-box">{error}</div>}
+
+        <button className="btn-primary" onClick={handleSetup} disabled={loading}>
+          {loading ? "Creating vault..." : "Create vault"}
         </button>
       </div>
     </div>
   );
 }
 
-// ── Lock Screen ────────────────────────────────────────────
-function LockScreen({ onUnlock }: { onUnlock: () => void }) {
+function LockScreen({ onUnlock }: { onUnlock: (pwd: string) => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -156,14 +145,8 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
     if (!lockedUntil) return;
     const interval = setInterval(() => {
       const remaining = Math.ceil((lockedUntil - Date.now()) / 1000);
-      if (remaining <= 0) {
-        setLockedUntil(null);
-        setAttempts(0);
-        setCountdown(0);
-        setError("");
-      } else {
-        setCountdown(remaining);
-      }
+      if (remaining <= 0) { setLockedUntil(null); setAttempts(0); setCountdown(0); setError(""); }
+      else setCountdown(remaining);
     }, 1000);
     return () => clearInterval(interval);
   }, [lockedUntil]);
@@ -173,18 +156,16 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
     setError("");
     setLoading(true);
     try {
-      await invoke("unlock_vault", { password });
-      onUnlock();
+      await onUnlock(password);
     } catch {
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
-      if (newAttempts >= 3) {
-        const until = Date.now() + 3 * 60 * 1000;
-        setLockedUntil(until);
+      const n = attempts + 1;
+      setAttempts(n);
+      if (n >= 3) {
+        setLockedUntil(Date.now() + 3 * 60 * 1000);
         setCountdown(180);
-        setError("Too many attempts. Locked for 3 minutes.");
+        setError("Too many attempts. Vault locked for 3 minutes.");
       } else {
-        setError(`Wrong password. ${3 - newAttempts} attempt${3 - newAttempts === 1 ? "" : "s"} remaining.`);
+        setError(`Wrong password. ${3 - n} attempt${3 - n === 1 ? "" : "s"} remaining.`);
       }
     } finally {
       setLoading(false);
@@ -192,94 +173,45 @@ function LockScreen({ onUnlock }: { onUnlock: () => void }) {
     }
   }
 
-  const isLocked = !!lockedUntil;
-
   return (
-    <div className="w-full max-w-md px-6">
-      <div className="text-center mb-10">
-        <div className="w-16 h-16 bg-[#6C63FF]/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#6C63FF]/30">
-          <span className="text-3xl">🔒</span>
-        </div>
-        <h1 className="text-4xl font-bold text-[#6C63FF] tracking-tight">Tokenly</h1>
-        <p className="text-gray-400 mt-2 text-sm">Enter your master password to unlock</p>
-      </div>
+    <div className="auth-wrap">
+      <div className="auth-card">
+        <div className="auth-logo">TOK<span>●</span>NLY</div>
+        <div className="auth-tagline">Enter master password to unlock vault</div>
 
-      <div className="bg-[#1A1B26] rounded-2xl p-8 border border-[#2D2B55]">
-        {isLocked ? (
-          <div className="text-center py-4">
-            <div className="w-14 h-14 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-500/30">
-              <span className="text-2xl">🚫</span>
+        {lockedUntil ? (
+          <div className="lockout-box">
+            <div className="error-box">Too many failed attempts.</div>
+            <div className="lockout-timer">
+              {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, "0")}
             </div>
-            <p className="text-red-400 font-semibold mb-1">Vault Locked</p>
-            <p className="text-gray-400 text-sm">Too many failed attempts.</p>
-            <div className="mt-4 bg-[#0F1117] rounded-lg px-6 py-4 border border-[#2D2B55]">
-              <p className="text-3xl font-bold text-white font-mono">
-                {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, "0")}
-              </p>
-              <p className="text-gray-500 text-xs mt-1">until unlock</p>
-            </div>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>until vault unlocks</p>
           </div>
         ) : (
           <>
-            <div className="mb-6">
-              <label className="text-xs text-gray-400 uppercase tracking-widest mb-2 block">
-                Master Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
-                placeholder="Enter master password"
-                autoFocus
-                className="w-full bg-[#0F1117] border border-[#2D2B55] rounded-lg px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-[#6C63FF] transition-colors"
-              />
-            </div>
-
-            {error && (
-              <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-
-            <button
-              onClick={handleUnlock}
-              disabled={loading || !password}
-              className="w-full bg-[#6C63FF] hover:bg-[#5A52E0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors text-sm"
-            >
-              {loading ? "Unlocking..." : "Unlock Vault"}
+            <label className="field-label">Master password</label>
+            <input
+              type="password"
+              className="field-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
+              placeholder="Enter master password"
+              autoFocus
+            />
+            {error && <div className="error-box">{error}</div>}
+            <button className="btn-primary" onClick={handleUnlock} disabled={loading || !password}>
+              {loading ? "Unlocking..." : "Unlock vault"}
             </button>
-
             {attempts > 0 && (
-              <div className="flex justify-center gap-2 mt-4">
+              <div className="attempt-dots">
                 {[0, 1, 2].map((i) => (
-                  <div key={i} className={`w-2 h-2 rounded-full ${i < attempts ? "bg-red-500" : "bg-[#2D2B55]"}`} />
+                  <div key={i} className={`dot${i < attempts ? " used" : ""}`} />
                 ))}
               </div>
             )}
           </>
         )}
-      </div>
-    </div>
-  );
-}
-
-// ── Dashboard Placeholder ──────────────────────────────────
-function DashboardPlaceholder({ onLock }: { onLock: () => void }) {
-  return (
-    <div className="flex flex-col items-center gap-6">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-[#6C63FF]">Tokenly</h1>
-        <p className="text-[#00D4AA] mt-2 text-sm font-medium">Vault Unlocked</p>
-      </div>
-      <div className="bg-[#1A1B26] rounded-2xl p-8 border border-[#2D2B55] text-center max-w-sm">
-        <p className="text-gray-400 text-sm mb-6">Dashboard coming in Phase 5.</p>
-        <button
-          onClick={onLock}
-          className="bg-[#2D2B55] hover:bg-[#3D3B65] text-white text-sm font-semibold px-6 py-2 rounded-lg transition-colors"
-        >
-          Lock Vault
-        </button>
       </div>
     </div>
   );
