@@ -102,9 +102,14 @@ npm run tauri build
 
 ## License
 
-Copyright (c) 2026 Shivsai Anantwar. All rights reserved.
+MIT License — Copyright (c) 2026 Shivsai Anantwar
 
-This software and its source code are proprietary and confidential.
-Unauthorized copying, distribution, modification, or use of this
-software, in whole or in part, without the express written permission
-of Shivsai Anantwar is strictly prohibited.
+This project is open source. You are free to use, modify, and distribute 
+this software, provided the copyright notice and this permission notice 
+are included in all copies. See the LICENSE file for full terms.
+
+---
+
+Built by [Shivsai Anantwar](https://bitsandbooks.in) to solve a real 
+problem observed across SDLC teams — credentials exposed during screen 
+sharing. If this helps you or your team, give it a ⭐ and share it.

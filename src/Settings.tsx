@@ -447,7 +447,7 @@ function AboutSection({ onBack }: { onBack: () => void }) {
         color: "var(--text-muted)",
         lineHeight: 1.6,
       }}>
-        © 2026 Shivsai Anantwar — bitsandbooks.in — Your tokens. Masked. Local. Always.
+        MIT Licensed — © 2026 Shivsai Anantwar — bitsandbooks.in
       </div>
     </div>
   );
