@@ -31,13 +31,13 @@ The core problem Tokenly solves: most SDLC teams store credentials in Notepad or
 ## Screenshots
 
 ### Dashboard
-![Tokenly Dashboard](docs/screenshot-dashboard.png)
+![Tokenly Dashboard](docs/Tokenly%20Dashboard.png)
 
 ### Lock Screen
-![Tokenly Lock Screen](docs/screenshot-lockscreen.png)
+![Tokenly Lock Screen](docs/Tokenly%20Lockscreen.png)
 
 ### First-Time Setup
-![Tokenly Setup](docs/screenshot-setup.png)
+![Tokenly Setup](docs/Tokenly%20Setup%20screen%20with%20warning.png)
 
 ---
 ---
