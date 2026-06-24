@@ -93,12 +93,26 @@ function SetupScreen({ onComplete }: { onComplete: () => void }) {
         <div className="auth-logo">TOK<span>●</span>NLY</div>
         <div className="auth-tagline">Your tokens. Masked. Local. Always.</div>
 
-        <p style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500, marginBottom: 4 }}>
+        <p style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500, marginBottom: 12 }}>
           Create master password
         </p>
-        <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 20 }}>
-          This password encrypts your vault. It is never stored anywhere. Losing it means losing access permanently.
-        </p>
+
+        {/* Critical warning — unmissable */}
+        <div style={{
+          background: "var(--danger-bg)",
+          border: "1px solid var(--danger-border)",
+          borderLeft: "3px solid var(--danger)",
+          borderRadius: 7,
+          padding: "12px 14px",
+          marginBottom: 20,
+        }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--danger)", marginBottom: 4, margin: 0 }}>
+            ⚠ Read this before continuing
+          </p>
+          <p style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.6, margin: "6px 0 0 0" }}>
+            This password encrypts your entire vault. It is <strong>never stored anywhere</strong> — not on disk, not in memory, not on any server. If you forget it, your vault <strong>cannot be recovered</strong>. There is no reset option. Choose something you will never forget.
+          </p>
+        </div>
 
         <label className="field-label">Master password</label>
         <input
