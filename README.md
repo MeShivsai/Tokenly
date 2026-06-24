@@ -28,6 +28,18 @@ The core problem Tokenly solves: most SDLC teams store credentials in Notepad or
 - OS-aware theme — light on light mode, dark on dark mode
 - Cross-platform — Windows and macOS
 
+## Screenshots
+
+### Dashboard
+![Tokenly Dashboard](docs/screenshot-dashboard.png)
+
+### Lock Screen
+![Tokenly Lock Screen](docs/screenshot-lockscreen.png)
+
+### First-Time Setup
+![Tokenly Setup](docs/screenshot-setup.png)
+
+---
 ---
 
 ## Tech Stack
