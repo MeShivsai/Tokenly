@@ -1,0 +1,64 @@
+name: ✨ Feature request
+description: Suggest an improvement or a new capability for Tokenly.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Good feature requests start with the **problem**, not the solution. Tell us what's slowing you down or putting your credentials at risk, and we'll work out the best fix together.
+
+        Tokenly's core principles: **local-only** (no cloud, no accounts, no network calls), **values never shown on screen by default**, and **zero-knowledge** (no master password recovery backdoor). Requests that break these will usually be declined, but explain your case anyway.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the situation and why it's a pain today.
+      placeholder: I rotate my GitHub PATs every 30 days and keep forgetting which ones are about to expire until a pipeline fails.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like Tokenly to do?
+      description: Your proposed solution. Rough ideas are fine.
+      placeholder: Show a badge on the dashboard with the number of credentials expiring this week.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      description: Workarounds you use today, or other ways this could be solved.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Credentials (add, edit, delete, organize)
+        - Copy and clipboard
+        - Unlock, lock and auto-lock
+        - Encryption and vault file
+        - Import, export and backup
+        - UI and usability
+        - Installation and updates
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: security
+    attributes:
+      label: Security considerations
+      description: Would this change what Tokenly stores, how it's encrypted, what's shown on screen, or what leaves your machine? If you're not sure, say so.
+
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I'd be willing to submit a pull request for this.

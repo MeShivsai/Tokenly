@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/MeShivsai/Tokenly/security/advisories/new
+    about: Report vulnerabilities privately. Please don't open a public issue. See SECURITY.md.
+  - name: 💬 Questions and design discussions
+    url: https://github.com/MeShivsai/Tokenly/discussions
+    about: How-to questions, ideas that need discussion first, and design proposals.
+  - name: 📖 User guide and FAQ
+    url: https://github.com/MeShivsai/Tokenly/wiki
+    about: Installation, usage, security model, known limitations and FAQ.
