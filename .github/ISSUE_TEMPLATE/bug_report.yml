@@ -1,0 +1,112 @@
+name: 🐞 Bug report
+description: Something in Tokenly isn't working as expected.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this.
+
+        > [!CAUTION]
+        > **Never paste real credentials, your master password, or your `vault.enc` / `.tkly` files into an issue.** Issues are public. Use fake values like `ghp_EXAMPLE123` in screenshots and steps.
+        >
+        > **Found a security vulnerability?** Don't use this form. Report it privately through the **Security** tab → **Report a vulnerability**.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: When I click Copy on a credential, the toast says "Copied" but the clipboard is empty.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The exact steps that trigger the bug.
+      placeholder: |
+        1. Unlock the vault
+        2. Click "+ Add" and create a credential in the "API" category
+        3. Click "Copy"
+        4. Paste into Notepad
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: data-impact
+    attributes:
+      label: Was any data lost or affected?
+      description: This helps us triage. Data-loss bugs are fixed first.
+      options:
+        - No, nothing was lost
+        - Some credentials are missing or have wrong values
+        - The vault won't unlock with a password I'm sure is correct
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Tokenly version
+      description: Check Windows **Settings → Apps → Installed apps → Tokenly**, or the installer filename you downloaded.
+      placeholder: "1.0.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS (built from source)
+        - Linux (built from source)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install Tokenly?
+      options:
+        - MSI installer (.msi)
+        - NSIS installer (-setup.exe)
+        - Built from source
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error messages or logs
+      description: Paste any error text shown in the app. **Check that it contains no secrets before posting.**
+      render: shell
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots (with no real secrets visible), how often it happens, whether it worked in an earlier version, etc.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and this hasn't been reported yet.
+          required: true
+        - label: This report contains no real credentials, passwords, or vault files.
+          required: true
